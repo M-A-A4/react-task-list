@@ -4,7 +4,7 @@ body {
 }
 
 .container {
-  width: 500px;
+  width: 650px;
   margin: 40px auto;
   background: white;
   padding: 25px;
@@ -14,12 +14,13 @@ body {
 
 h1 {
   text-align: center;
+  margin-bottom: 25px;
 }
 
 .add-task {
   display: flex;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 }
 
 .add-task input {
@@ -27,22 +28,78 @@ h1 {
   padding: 10px;
 }
 
+.add-task select,
 .add-task button {
-  padding: 10px 15px;
+  padding: 10px;
+}
+
+button {
   cursor: pointer;
+}
+
+.search-box {
+  margin-bottom: 15px;
+}
+
+.search-box input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+}
+
+.filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.filters button {
+  padding: 8px 15px;
+}
+
+.active-filter {
+  font-weight: bold;
+}
+
+.count {
+  display: flex;
+  gap: 20px;
+  font-weight: bold;
+  margin-bottom: 15px;
 }
 
 .task-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 0;
+  gap: 15px;
+  padding: 15px 0;
   border-bottom: 1px solid #ddd;
 }
 
-.task-item button {
-  padding: 6px 12px;
-  cursor: pointer;
+.task-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.priority {
+  font-size: 13px;
+  color: #666;
+}
+
+.task-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.task-buttons button {
+  padding: 6px 10px;
+}
+
+.task-buttons button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .completed {
@@ -50,7 +107,23 @@ h1 {
   color: gray;
 }
 
-.count {
-  font-weight: bold;
-  margin-bottom: 15px;
+.edit-section {
+  display: flex;
+  flex: 1;
+  gap: 10px;
+}
+
+.edit-section input {
+  flex: 1;
+  padding: 8px;
+}
+
+.edit-section select {
+  padding: 8px;
+}
+
+.empty-message {
+  text-align: center;
+  padding: 20px;
+  color: #666;
 }
