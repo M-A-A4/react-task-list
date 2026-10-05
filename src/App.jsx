@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import TaskItem from "./TaskItem";
-import "./TaskItem.css";
+import TaskItem from "./components/TaskItem";
+import "./styles/TaskItem.css";
 
 function App() {
   const [tasks, setTasks] = useState([
