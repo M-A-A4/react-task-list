@@ -14,11 +14,11 @@ function App() {
   const addTask = () => {
     if (newTask.trim() === "") return;
 
-    const task = {
+      const task = {
       id: Date.now(),
-      text: newTask,
+      text: newTask.trim(),
       completed: false,
-    };
+      };
 
     setTasks([...tasks, task]);
     setNewTask("");
