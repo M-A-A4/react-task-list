@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
-import TaskItem from "./components/TaskItem";
+import TaskForm from "./components/TaskForm";
+import TaskList from "./components/TaskList";
 import "./styles/TaskItem.css";
 
 const initialTasks = [
@@ -44,16 +45,15 @@ function App() {
     }
   });
 
+  // State for adding a new task
   const [newTask, setNewTask] = useState("");
   const [newPriority, setNewPriority] = useState("Medium");
 
-  const [editingId, setEditingId] = useState(null);
-  const [editText, setEditText] = useState("");
-  const [editPriority, setEditPriority] = useState("Medium");
-
+  // State for search and filters
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all");
 
+  // Save tasks to localStorage
   useEffect(() => {
     localStorage.setItem("tasks", JSON.stringify(tasks));
   }, [tasks]);
@@ -73,17 +73,21 @@ function App() {
       priority: newPriority,
     };
 
-    setTasks([...tasks, task]);
+    setTasks((prev) => [...prev, task]);
+
     setNewTask("");
     setNewPriority("Medium");
   };
 
   // COMPLETE / UNDO
   const completeTask = (id) => {
-    setTasks(
-      tasks.map((task) =>
+    setTasks((prev) =>
+      prev.map((task) =>
         task.id === id
-          ? { ...task, completed: !task.completed }
+          ? {
+              ...task,
+              completed: !task.completed,
+            }
           : task
       )
     );
@@ -91,53 +95,34 @@ function App() {
 
   // DELETE
   const deleteTask = (id) => {
-    setTasks(
-      tasks.filter((task) => task.id !== id)
+    setTasks((prev) =>
+      prev.filter((task) => task.id !== id)
     );
-
-    if (editingId === id) {
-      setEditingId(null);
-      setEditText("");
-    }
   };
 
-  // START EDITING
-  const startEditing = (task) => {
-    setEditingId(task.id);
-    setEditText(task.text);
-    setEditPriority(task.priority);
-  };
-
-  // SAVE EDIT
-  const saveEdit = (id) => {
-    const trimmedText = editText.trim();
+  // UPDATE TASK
+  const updateTask = (
+    id,
+    updatedText,
+    updatedPriority
+  ) => {
+    const trimmedText = updatedText.trim();
 
     if (trimmedText === "") {
       return;
     }
 
-    setTasks(
-      tasks.map((task) =>
+    setTasks((prev) =>
+      prev.map((task) =>
         task.id === id
           ? {
               ...task,
               text: trimmedText,
-              priority: editPriority,
+              priority: updatedPriority,
             }
           : task
       )
     );
-
-    setEditingId(null);
-    setEditText("");
-    setEditPriority("Medium");
-  };
-
-  // CANCEL EDIT
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditText("");
-    setEditPriority("Medium");
   };
 
   // COUNTS
@@ -174,27 +159,13 @@ function App() {
       <h1>Task Manager</h1>
 
       {/* ADD TASK */}
-      <div className="add-task">
-        <input
-          type="text"
-          placeholder="Enter a task"
-          value={newTask}
-          onChange={(e) => setNewTask(e.target.value)}
-        />
-
-        <select
-          value={newPriority}
-          onChange={(e) => setNewPriority(e.target.value)}
-        >
-          <option value="Low">Low</option>
-          <option value="Medium">Medium</option>
-          <option value="High">High</option>
-        </select>
-
-        <button onClick={addTask}>
-          Add Task
-        </button>
-      </div>
+      <TaskForm
+        newTask={newTask}
+        setNewTask={setNewTask}
+        priority={newPriority}
+        setPriority={setNewPriority}
+        addTask={addTask}
+      />
 
       {/* SEARCH */}
       <div className="search-box">
@@ -202,21 +173,29 @@ function App() {
           type="text"
           placeholder="Search tasks..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) =>
+            setSearchTerm(e.target.value)
+          }
         />
       </div>
 
       {/* FILTER BUTTONS */}
       <div className="filters">
         <button
-          className={filter === "all" ? "active-filter" : ""}
+          className={
+            filter === "all" ? "active-filter" : ""
+          }
           onClick={() => setFilter("all")}
         >
           All
         </button>
 
         <button
-          className={filter === "active" ? "active-filter" : ""}
+          className={
+            filter === "active"
+              ? "active-filter"
+              : ""
+          }
           onClick={() => setFilter("active")}
         >
           Active
@@ -224,7 +203,9 @@ function App() {
 
         <button
           className={
-            filter === "completed" ? "active-filter" : ""
+            filter === "completed"
+              ? "active-filter"
+              : ""
           }
           onClick={() => setFilter("completed")}
         >
@@ -239,7 +220,7 @@ function App() {
         <p>Completed: {completedCount}</p>
       </div>
 
-      {/* EMPTY STATES */}
+      {/* TASKS */}
       {tasks.length === 0 ? (
         <p className="empty-message">
           No tasks yet.
@@ -249,22 +230,12 @@ function App() {
           No matching tasks.
         </p>
       ) : (
-        filteredTasks.map((task) => (
-          <TaskItem
-            key={task.id}
-            task={task}
-            onComplete={completeTask}
-            onDelete={deleteTask}
-            onEdit={startEditing}
-            onSave={saveEdit}
-            onCancel={cancelEdit}
-            editingId={editingId}
-            editText={editText}
-            setEditText={setEditText}
-            editPriority={editPriority}
-            setEditPriority={setEditPriority}
-          />
-        ))
+        <TaskList
+          tasks={filteredTasks}
+          onComplete={completeTask}
+          onDelete={deleteTask}
+          onUpdate={updateTask}
+        />
       )}
     </div>
   );
