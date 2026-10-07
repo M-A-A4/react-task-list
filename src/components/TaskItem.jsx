@@ -1,19 +1,34 @@
-import React from "react";
+import React, { useState } from "react";
 
 function TaskItem({
   task,
   onComplete,
   onDelete,
-  onEdit,
   onSave,
-  onCancel,
-  editingId,
-  editText,
-  setEditText,
-  editPriority,
-  setEditPriority,
 }) {
-  const isEditing = editingId === task.id;
+  const [isEditing, setIsEditing] = useState(false);
+
+  const [editText, setEditText] = useState(task.text);
+
+  const [editPriority, setEditPriority] = useState(
+    task.priority
+  );
+
+  const handleSave = () => {
+    onSave(
+      task.id,
+      editText,
+      editPriority
+    );
+
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditText(task.text);
+    setEditPriority(task.priority);
+    setIsEditing(false);
+  };
 
   return (
     <div className="task-item">
@@ -41,13 +56,11 @@ function TaskItem({
           </div>
 
           <div className="task-buttons">
-            <button
-              onClick={() => onSave(task.id)}
-            >
+            <button onClick={handleSave}>
               Save
             </button>
 
-            <button onClick={onCancel}>
+            <button onClick={handleCancel}>
               Cancel
             </button>
           </div>
@@ -70,7 +83,9 @@ function TaskItem({
 
           <div className="task-buttons">
             <button
-              onClick={() => onComplete(task.id)}
+              onClick={() =>
+                onComplete(task.id)
+              }
             >
               {task.completed
                 ? "Undo"
@@ -78,17 +93,21 @@ function TaskItem({
             </button>
 
             <button
-              onClick={() => onEdit(task)}
-              disabled={
-                editingId !== null &&
-                editingId !== task.id
-              }
+              onClick={() => {
+                setEditText(task.text);
+                setEditPriority(
+                  task.priority
+                );
+                setIsEditing(true);
+              }}
             >
               Edit
             </button>
 
             <button
-              onClick={() => onDelete(task.id)}
+              onClick={() =>
+                onDelete(task.id)
+              }
             >
               Delete
             </button>
