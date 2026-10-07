@@ -1,9 +1,15 @@
+
+import React from "react";
+
 function TaskForm({
   newTask,
   setNewTask,
   priority,
   setPriority,
+  dueDate,
+  setDueDate,
   addTask,
+  dateError,
 }) {
   return (
     <div>
@@ -23,11 +29,25 @@ function TaskForm({
         <option value="High">High</option>
       </select>
 
+      <input
+        type="date"
+        value={dueDate}
+        onChange={(e) => setDueDate(e.target.value)}
+      />
+
       <button onClick={addTask}>
         Add Task
       </button>
+
+      {dateError && (
+        <p className="error-message">
+          {dateError}
+        </p>
+      )}
     </div>
   );
 }
 
 export default TaskForm;
+
+

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 
 function TaskItem({
@@ -7,18 +8,38 @@ function TaskItem({
   onSave,
 }) {
   const [isEditing, setIsEditing] = useState(false);
-
   const [editText, setEditText] = useState(task.text);
-
-  const [editPriority, setEditPriority] = useState(
-    task.priority
-  );
+  const [editPriority, setEditPriority] = useState(task.priority);
+  const [editDueDate, setEditDueDate] = useState(task.dueDate || "");
+  const [dateError, setDateError] = useState("");
 
   const handleSave = () => {
+    const trimmedText = editText.trim();
+
+    if (trimmedText === "") {
+      return;
+    }
+
+    if (editDueDate) {
+      const selectedDate = new Date(editDueDate);
+      const currentDate = new Date();
+
+      selectedDate.setHours(0, 0, 0, 0);
+      currentDate.setHours(0, 0, 0, 0);
+
+      if (isNaN(selectedDate.getTime())) {
+        setDateError("Please enter a valid date.");
+        return;
+      }
+    }
+
+    setDateError("");
+
     onSave(
       task.id,
-      editText,
-      editPriority
+      trimmedText,
+      editPriority,
+      editDueDate
     );
 
     setIsEditing(false);
@@ -27,7 +48,23 @@ function TaskItem({
   const handleCancel = () => {
     setEditText(task.text);
     setEditPriority(task.priority);
+    setEditDueDate(task.dueDate || "");
+    setDateError("");
     setIsEditing(false);
+  };
+
+  const isOverdue = () => {
+    if (!task.dueDate || task.completed) {
+      return false;
+    }
+
+    const today = new Date();
+    const dueDate = new Date(task.dueDate);
+
+    today.setHours(0, 0, 0, 0);
+    dueDate.setHours(0, 0, 0, 0);
+
+    return dueDate < today;
   };
 
   return (
@@ -53,7 +90,21 @@ function TaskItem({
               <option value="Medium">Medium</option>
               <option value="High">High</option>
             </select>
+
+            <input
+              type="date"
+              value={editDueDate}
+              onChange={(e) =>
+                setEditDueDate(e.target.value)
+              }
+            />
           </div>
+
+          {dateError && (
+            <p className="error-message">
+              {dateError}
+            </p>
+          )}
 
           <div className="task-buttons">
             <button onClick={handleSave}>
@@ -79,6 +130,19 @@ function TaskItem({
             <span className="priority">
               Priority: {task.priority}
             </span>
+
+            <span className="due-date">
+              Due Date:{" "}
+              {task.dueDate
+                ? task.dueDate
+                : "No due date"}
+            </span>
+
+            {isOverdue() && (
+              <span className="overdue">
+                Overdue
+              </span>
+            )}
           </div>
 
           <div className="task-buttons">
@@ -95,9 +159,11 @@ function TaskItem({
             <button
               onClick={() => {
                 setEditText(task.text);
-                setEditPriority(
-                  task.priority
+                setEditPriority(task.priority);
+                setEditDueDate(
+                  task.dueDate || ""
                 );
+                setDateError("");
                 setIsEditing(true);
               }}
             >
@@ -119,3 +185,4 @@ function TaskItem({
 }
 
 export default TaskItem;
+

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useMemo, useState } from "react";
 import TaskForm from "./components/TaskForm";
 import TaskList from "./components/TaskList";
@@ -9,18 +10,21 @@ const initialTasks = [
     text: "Study React",
     completed: false,
     priority: "High",
+    dueDate: "",
   },
   {
     id: 2,
     text: "Finish Homework",
     completed: false,
     priority: "Medium",
+    dueDate: "",
   },
   {
     id: 3,
     text: "Read Documentation",
     completed: false,
     priority: "Low",
+    dueDate: "",
   },
 ];
 
@@ -45,20 +49,18 @@ function App() {
     }
   });
 
-  // State for adding a new task
   const [newTask, setNewTask] = useState("");
   const [newPriority, setNewPriority] = useState("Medium");
+  const [dueDate, setDueDate] = useState("");
+  const [dateError, setDateError] = useState("");
 
-  // State for search and filters
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all");
 
-  // Save tasks to localStorage
   useEffect(() => {
     localStorage.setItem("tasks", JSON.stringify(tasks));
   }, [tasks]);
 
-  // CREATE
   const addTask = () => {
     const trimmedText = newTask.trim();
 
@@ -66,20 +68,32 @@ function App() {
       return;
     }
 
+    if (dueDate) {
+      const selectedDate = new Date(dueDate);
+
+      if (isNaN(selectedDate.getTime())) {
+        setDateError("Please enter a valid date.");
+        return;
+      }
+    }
+
+    setDateError("");
+
     const task = {
       id: Date.now(),
       text: trimmedText,
       completed: false,
       priority: newPriority,
+      dueDate: dueDate,
     };
 
     setTasks((prev) => [...prev, task]);
 
     setNewTask("");
     setNewPriority("Medium");
+    setDueDate("");
   };
 
-  // COMPLETE / UNDO
   const completeTask = (id) => {
     setTasks((prev) =>
       prev.map((task) =>
@@ -93,23 +107,30 @@ function App() {
     );
   };
 
-  // DELETE
   const deleteTask = (id) => {
     setTasks((prev) =>
       prev.filter((task) => task.id !== id)
     );
   };
 
-  // UPDATE TASK
   const updateTask = (
     id,
     updatedText,
-    updatedPriority
+    updatedPriority,
+    updatedDueDate
   ) => {
     const trimmedText = updatedText.trim();
 
     if (trimmedText === "") {
       return;
+    }
+
+    if (updatedDueDate) {
+      const selectedDate = new Date(updatedDueDate);
+
+      if (isNaN(selectedDate.getTime())) {
+        return;
+      }
     }
 
     setTasks((prev) =>
@@ -119,13 +140,13 @@ function App() {
               ...task,
               text: trimmedText,
               priority: updatedPriority,
+              dueDate: updatedDueDate,
             }
           : task
       )
     );
   };
 
-  // COUNTS
   const totalCount = tasks.length;
 
   const completedCount = tasks.filter(
@@ -136,7 +157,6 @@ function App() {
     (task) => !task.completed
   ).length;
 
-  // SEARCH + FILTER
   const filteredTasks = useMemo(() => {
     const search = searchTerm.trim().toLowerCase();
 
@@ -158,16 +178,17 @@ function App() {
     <div className="container">
       <h1>Task Manager</h1>
 
-      {/* ADD TASK */}
       <TaskForm
         newTask={newTask}
         setNewTask={setNewTask}
         priority={newPriority}
         setPriority={setNewPriority}
+        dueDate={dueDate}
+        setDueDate={setDueDate}
         addTask={addTask}
+        dateError={dateError}
       />
 
-      {/* SEARCH */}
       <div className="search-box">
         <input
           type="text"
@@ -179,11 +200,12 @@ function App() {
         />
       </div>
 
-      {/* FILTER BUTTONS */}
       <div className="filters">
         <button
           className={
-            filter === "all" ? "active-filter" : ""
+            filter === "all"
+              ? "active-filter"
+              : ""
           }
           onClick={() => setFilter("all")}
         >
@@ -213,14 +235,12 @@ function App() {
         </button>
       </div>
 
-      {/* COUNTS */}
       <div className="count">
         <p>Total: {totalCount}</p>
         <p>Active: {activeCount}</p>
         <p>Completed: {completedCount}</p>
       </div>
 
-      {/* TASKS */}
       {tasks.length === 0 ? (
         <p className="empty-message">
           No tasks yet.
