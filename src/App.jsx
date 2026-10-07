@@ -1,7 +1,7 @@
-
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import TaskForm from "./components/TaskForm";
 import TaskList from "./components/TaskList";
+import useLocalStorage from "./hooks/useLocalStorage";
 import "./styles/TaskItem.css";
 
 const initialTasks = [
@@ -29,25 +29,10 @@ const initialTasks = [
 ];
 
 function App() {
-  const [tasks, setTasks] = useState(() => {
-    try {
-      const savedTasks = localStorage.getItem("tasks");
-
-      if (!savedTasks) {
-        return initialTasks;
-      }
-
-      const parsedTasks = JSON.parse(savedTasks);
-
-      if (!Array.isArray(parsedTasks)) {
-        return initialTasks;
-      }
-
-      return parsedTasks;
-    } catch (error) {
-      return initialTasks;
-    }
-  });
+  const [tasks, setTasks] = useLocalStorage(
+    "tasks",
+    initialTasks
+  );
 
   const [newTask, setNewTask] = useState("");
   const [newPriority, setNewPriority] = useState("Medium");
@@ -56,10 +41,10 @@ function App() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all");
+  const [priorityFilter, setPriorityFilter] = useState("all");
+  const [sortOption, setSortOption] = useState("newest");
 
-  useEffect(() => {
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-  }, [tasks]);
+  const [deletedTask, setDeletedTask] = useState(null);
 
   const addTask = () => {
     const trimmedText = newTask.trim();
@@ -108,9 +93,52 @@ function App() {
   };
 
   const deleteTask = (id) => {
+    const taskToDelete = tasks.find(
+      (task) => task.id === id
+    );
+
+    if (!taskToDelete) {
+      return;
+    }
+
     setTasks((prev) =>
       prev.filter((task) => task.id !== id)
     );
+
+    setDeletedTask(taskToDelete);
+
+    setTimeout(() => {
+      setDeletedTask((current) => {
+        if (
+          current &&
+          current.id === taskToDelete.id
+        ) {
+          return null;
+        }
+
+        return current;
+      });
+    }, 5000);
+  };
+
+  const undoDelete = () => {
+    if (!deletedTask) {
+      return;
+    }
+
+    setTasks((prev) => {
+      const alreadyExists = prev.some(
+        (task) => task.id === deletedTask.id
+      );
+
+      if (alreadyExists) {
+        return prev;
+      }
+
+      return [...prev, deletedTask];
+    });
+
+    setDeletedTask(null);
   };
 
   const updateTask = (
@@ -122,14 +150,14 @@ function App() {
     const trimmedText = updatedText.trim();
 
     if (trimmedText === "") {
-      return;
+      return false;
     }
 
     if (updatedDueDate) {
       const selectedDate = new Date(updatedDueDate);
 
       if (isNaN(selectedDate.getTime())) {
-        return;
+        return false;
       }
     }
 
@@ -145,6 +173,8 @@ function App() {
           : task
       )
     );
+
+    return true;
   };
 
   const totalCount = tasks.length;
@@ -160,19 +190,64 @@ function App() {
   const filteredTasks = useMemo(() => {
     const search = searchTerm.trim().toLowerCase();
 
-    return tasks.filter((task) => {
+    const result = tasks.filter((task) => {
       const matchesSearch = task.text
         .toLowerCase()
         .includes(search);
 
-      const matchesFilter =
+      const matchesStatus =
         filter === "all" ||
         (filter === "active" && !task.completed) ||
         (filter === "completed" && task.completed);
 
-      return matchesSearch && matchesFilter;
+      const matchesPriority =
+        priorityFilter === "all" ||
+        task.priority === priorityFilter;
+
+      return (
+        matchesSearch &&
+        matchesStatus &&
+        matchesPriority
+      );
     });
-  }, [tasks, searchTerm, filter]);
+
+    return [...result].sort((a, b) => {
+      if (sortOption === "newest") {
+        return Number(b.id) - Number(a.id);
+      }
+
+      if (sortOption === "oldest") {
+        return Number(a.id) - Number(b.id);
+      }
+
+      if (sortOption === "dueDate") {
+        if (!a.dueDate && !b.dueDate) {
+          return 0;
+        }
+
+        if (!a.dueDate) {
+          return 1;
+        }
+
+        if (!b.dueDate) {
+          return -1;
+        }
+
+        return (
+          new Date(a.dueDate) -
+          new Date(b.dueDate)
+        );
+      }
+
+      return 0;
+    });
+  }, [
+    tasks,
+    searchTerm,
+    filter,
+    priorityFilter,
+    sortOption,
+  ]);
 
   return (
     <div className="container">
@@ -229,10 +304,92 @@ function App() {
               ? "active-filter"
               : ""
           }
-          onClick={() => setFilter("completed")}
+          onClick={() =>
+            setFilter("completed")
+          }
         >
           Completed
         </button>
+      </div>
+
+      <div className="priority-filters">
+        <button
+          className={
+            priorityFilter === "all"
+              ? "active-filter"
+              : ""
+          }
+          onClick={() =>
+            setPriorityFilter("all")
+          }
+        >
+          All Priorities
+        </button>
+
+        <button
+          className={
+            priorityFilter === "Low"
+              ? "active-filter"
+              : ""
+          }
+          onClick={() =>
+            setPriorityFilter("Low")
+          }
+        >
+          Low
+        </button>
+
+        <button
+          className={
+            priorityFilter === "Medium"
+              ? "active-filter"
+              : ""
+          }
+          onClick={() =>
+            setPriorityFilter("Medium")
+          }
+        >
+          Medium
+        </button>
+
+        <button
+          className={
+            priorityFilter === "High"
+              ? "active-filter"
+              : ""
+          }
+          onClick={() =>
+            setPriorityFilter("High")
+          }
+        >
+          High
+        </button>
+      </div>
+
+      <div className="sort-box">
+        <label htmlFor="sort">
+          Sort:
+        </label>
+
+        <select
+          id="sort"
+          value={sortOption}
+          onChange={(e) =>
+            setSortOption(e.target.value)
+          }
+        >
+          <option value="newest">
+            Newest
+          </option>
+
+          <option value="oldest">
+            Oldest
+          </option>
+
+          <option value="dueDate">
+            Due Date
+          </option>
+        </select>
       </div>
 
       <div className="count">
@@ -240,6 +397,18 @@ function App() {
         <p>Active: {activeCount}</p>
         <p>Completed: {completedCount}</p>
       </div>
+
+      {deletedTask && (
+        <div className="undo-message">
+          <span>
+            Deleted: {deletedTask.text}
+          </span>
+
+          <button onClick={undoDelete}>
+            Undo
+          </button>
+        </div>
+      )}
 
       {tasks.length === 0 ? (
         <p className="empty-message">

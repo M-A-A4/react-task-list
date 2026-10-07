@@ -11,8 +11,8 @@ function TaskForm({
   addTask,
   dateError,
 }) {
-  return (
-    <div>
+ return (
+    <div className="add-task">
       <input
         type="text"
         placeholder="Enter task"
@@ -49,5 +49,3 @@ function TaskForm({
 }
 
 export default TaskForm;
-
-

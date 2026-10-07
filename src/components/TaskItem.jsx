@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 
 function TaskItem({
@@ -8,24 +7,29 @@ function TaskItem({
   onSave,
 }) {
   const [isEditing, setIsEditing] = useState(false);
-  const [editText, setEditText] = useState(task.text);
-  const [editPriority, setEditPriority] = useState(task.priority);
-  const [editDueDate, setEditDueDate] = useState(task.dueDate || "");
+
+  const [editText, setEditText] = useState(
+    task.text
+  );
+
+  const [editPriority, setEditPriority] =
+    useState(task.priority);
+
+  const [editDueDate, setEditDueDate] =
+    useState(task.dueDate || "");
+
   const [dateError, setDateError] = useState("");
 
   const handleSave = () => {
     const trimmedText = editText.trim();
 
     if (trimmedText === "") {
+      setDateError("Task title cannot be empty.");
       return;
     }
 
     if (editDueDate) {
       const selectedDate = new Date(editDueDate);
-      const currentDate = new Date();
-
-      selectedDate.setHours(0, 0, 0, 0);
-      currentDate.setHours(0, 0, 0, 0);
 
       if (isNaN(selectedDate.getTime())) {
         setDateError("Please enter a valid date.");
@@ -33,15 +37,19 @@ function TaskItem({
       }
     }
 
-    setDateError("");
-
-    onSave(
+    const saved = onSave(
       task.id,
       trimmedText,
       editPriority,
       editDueDate
     );
 
+    if (saved === false) {
+      setDateError("Could not save the task.");
+      return;
+    }
+
+    setDateError("");
     setIsEditing(false);
   };
 
@@ -60,6 +68,10 @@ function TaskItem({
 
     const today = new Date();
     const dueDate = new Date(task.dueDate);
+
+    if (isNaN(dueDate.getTime())) {
+      return false;
+    }
 
     today.setHours(0, 0, 0, 0);
     dueDate.setHours(0, 0, 0, 0);
@@ -87,7 +99,9 @@ function TaskItem({
               }
             >
               <option value="Low">Low</option>
-              <option value="Medium">Medium</option>
+              <option value="Medium">
+                Medium
+              </option>
               <option value="High">High</option>
             </select>
 
@@ -121,7 +135,9 @@ function TaskItem({
           <div className="task-info">
             <span
               className={
-                task.completed ? "completed" : ""
+                task.completed
+                  ? "completed"
+                  : ""
               }
             >
               {task.text}
@@ -159,7 +175,9 @@ function TaskItem({
             <button
               onClick={() => {
                 setEditText(task.text);
-                setEditPriority(task.priority);
+                setEditPriority(
+                  task.priority
+                );
                 setEditDueDate(
                   task.dueDate || ""
                 );
@@ -185,4 +203,3 @@ function TaskItem({
 }
 
 export default TaskItem;
-

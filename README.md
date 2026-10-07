@@ -68,3 +68,36 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+
+## State Management
+
+The main task list state is stored in the App component.
+
+App owns the task data because multiple components need access to it,
+including TaskForm, TaskList, and TaskItem.
+
+TaskItem stores only its local editing state while a task is being edited.
+
+Filtered and sorted tasks are derived from the main tasks state and are
+not stored separately.
+
+## Features
+
+- Create tasks
+- Edit tasks
+- Delete tasks
+- Complete and undo tasks
+- Due dates
+- Overdue task detection
+- Search tasks
+- Status filters (All, Active, Completed)
+- Priority filters (Low, Medium, High)
+- Sorting (Newest, Oldest, Due Date)
+- Local storage persistence
+
+## Help / Sources Used
+
+I used React documentation, course materials, and AI assistance to
+better understand React components, props, state management, hooks,
+localStorage, filtering, sorting, and event handling.
